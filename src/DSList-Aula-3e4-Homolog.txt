@@ -1,0 +1,826 @@
+Projeto DSList  - Lista de Games  - Aulas 3 e 4 
+
+========
+#Aula 3:
+========
+Vídeo: https://devsuperior.com.br/ijs-aula-383628
+PDF: https://devsuperior.s3.sa-east-1.amazonaws.com/ijs-aula3-253796.pdf
+
+
+Perfis de projeto
+=================
+
+  1. Perfil de desenvolvimento e testes:
+     - test
+     - Banco de dados H2
+       Criado como /dslist/src/main/resources/application-test.properties
+  
+  2. Perfil de homologação / staging:
+     - dev
+     - Banco de dados Postgres de homologação
+       Criado como /dslist/src/main/resources/application-dev.properties
+       
+     Preencher o arquivo dev com os dados do PostGress local 
+     copiar do projeto referencia no github: 
+       - application-dev.properties
+       
+     ATENÇÃO: Como nossa aplicação está fora do Container 
+         mudar a porta de 5432 para 5433 (porta externa do container)
+         mudar a base para /dslist
+         spring.datasource.url=jdbc:postgresql://localhost:5432/dscatalog
+         para: 
+         spring.datasource.url=jdbc:postgresql://localhost:5433/dslist 
+  
+  3. Perfil de produção:
+     - prod
+     - Banco de dados Postgres de produção       
+       Criar como /dslist/src/main/resources/application-prod.properties
+       
+       Preencher o arquivo prod com os dados do PostGress na nuvem 
+       copiar do projeto referencia no github: 
+       - application-prod.properties
+       
+       ATENÇÃO: Configurar as variaveis de ambiente de username/password 
+
+
+Passos homologação
+==================
+
+  Preparação do ambiente
+    Docker
+    ou
+    Postgresql + pgAdmin ou DBeaver
+    
+    Homologação local
+      1. Criar perfis de projeto
+         * system.properties
+      2. Gerar script da base de dados
+         * apagar arquivo gerado
+      3. Criar base de dados de homologação
+      4. Rodar app no modo dev e validar
+====================================================
+
+Seguindo os passos da homologação: 
+
+  1. Preparação do ambiente  via Docker
+  =====================================
+  
+  Levantar o Banco de Dados Postgresql + pgAdmin usando o Docker Compose: 
+    
+  No projeto referência: 
+    https://github.com/devsuperior/dslist-backend  ==> baixado dslist-backend-main.zip
+  
+  Script Docker Compose: 
+   Arquivo Script para levantar 2 containers 
+     Clicar no link https://gist.github.com/acenelio/5e40b27cfc40151e36beec1e27c4ff71
+     Clicar no botão Raw  para liberar o conteudo em texto do arquivo
+   
+   Copiar e salvar o arquivo que contém a configuração dos containers:  
+     C:\Aula-3\docker-compose.yml  ==> tirar .txt gerado como tipo do arquivo.  
+   
+   Abrir um terminal em Inciar => Windows powershell 
+   e mouse/direito => executar como administrador na pasta C:\Aula-3\   
+     acessar caminho da pasta:  
+     PS C:\WINDOWS\system32> cd C:\Aula-3\
+     PS C:\Aula-3\>
+     
+     depois rodar: 
+     PS C:\Aula-3\> docker-compose up -d 
+        OBS: up subir os containers  e 
+            -d para liberar o terminal para poder trabalhar  
+
+     [+] Running 3/3
+     ? Network aula-3_dev-network  Created                                                                                               0.2s
+     ? Container dev-postgresql    Started                                                                                              21.8s
+     ? Container dev-pgadmin       Started                                                                                              20.1s
+     PS C:\Aula-3\>  
+     
+     Deu certo, o PostGres e o PgAdmin já estão rodando no servidor 
+     
+     Agora rodar a aplicação no navegador: localhost:5050 
+     
+     Se não carrregar a pagina do PgAdmin Login, conferir no terminal: 
+
+     PS C:\Aula-3\> docker ps
+     CONTAINER ID   IMAGE                COMMAND                  CREATED         STATUS         PORTS                           NAMES
+     d219361e79e3   dpage/pgadmin4       "/entrypoint.sh"         5 minutes ago   Up 5 minutes   443/tcp, 0.0.0.0:5050->80/tcp   dev-pgadmin
+     744432450a2d   postgres:14-alpine   "docker-entrypoint.s…"   5 minutes ago   Up 5 minutes   0.0.0.0:5433->5432/tcp          dev-postgresql
+     PS C:\Aula-3\>       
+          
+     Lista acima, os dois containers estão rodando com sucesso. 
+   
+     Na pagina do navegador do PgAdmin carregada, logar: 
+     C:\Aula-3\docker-compose.yml 
+       environment:
+         PGADMIN_DEFAULT_EMAIL: me@example.com
+         PGADMIN_DEFAULT_PASSWORD: 1234567
+            
+     Depois de logar, configurar o servidor 
+       mouse/direito em <Servers>> ==> registrar ==> servidor 
+       ======================================================
+       Register - Server
+       =================
+       General: 
+         Name: Postgress-local-docker     (instancia do servidor) 
+       Connection (barra de menu): 
+        ==> Host name/address..: pg-docker        (está em nivel de container) 
+        ==> Porta..............: 5432  Colocar está porta que é a interna
+                     Se tivesse um PgAdmin que não estive rodando na mesma rede do container 
+                     teria que ser porta 5433 (ex. debeaver) 
+        ==> Maintenance database: mydatabase
+        ==> Username............: postgres    (o padrão) 
+        ==> Password............: 1234567   (conforme o arquivo de configuração acima) 
+       ======================================================
+        
+       Conectou com sucesso ao Banco de Dados PostGress
+                              
+         
+ 2. Homologação local  (para testar se a aplicação roda no PostGress)
+     ================================================================-
+     
+  1. Criar perfis de projeto
+     ========================
+     * system.properties
+     
+     Criar na pasta principal do projeto:
+       /dslist  ==> mouse/direito ==> new ==> file => system.properties
+       
+       copiar o codigo do arquivo de referencia do projeto do github
+       
+       java.runtime.version=17  ==> trocar para 21
+           
+       ==> verificar no /dslist/pom.xml qual versao do java 
+          <properties>
+             <java.version>21</java.version>                                    
+         Obs: Alguma plataformas exigem este arquivo, como o Heroku 
+     
+      Commit pois já está pronto para implantar 
+      
+       Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+       $ git add .
+
+       Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+       $ git commit -m "Deploy ready"
+       
+       [main 440df2c] Deploy ready
+        3 files changed, 20 insertions(+)
+        create mode 100644 src/main/resources/application-dev.properties
+        create mode 100644 src/main/resources/application-prod.properties
+        create mode 100644 system.properties
+
+       Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+       $ git push
+       
+       Enumerating objects: 12, done.
+       Counting objects: 100% (12/12), done.
+       Delta compression using up to 8 threads
+       Compressing objects: 100% (7/7), done.
+       Writing objects: 100% (8/8), 1019 bytes | 339.00 KiB/s, done.
+       Total 8 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+       remote: Resolving deltas: 100% (2/2), completed with 1 local object.
+       To github.com:FranciscoCLira/dslist.git
+          d6276d0..440df2c  main -> main
+
+      
+  2. Gerar arquivo script da base de dados
+     =====================================
+     * apagar arquivo gerado
+      
+    1. Em /dslist/src/main/resources/application-dev.properties
+       descomentar as 4 linhas do topo, tirar o (#) 
+    
+    2. Em /dslist/src/main/resources/application.properties
+       Alterar provisoriamente para perfil de dev
+       De..: spring.profiles.active=${APP_PROFILE:test}
+       Para: spring.profiles.active=${APP_PROFILE:dev} 
+      
+    3. A partir do /dslist em /dslist/src/main/resources/application-dev.properties 
+          spring.datasource.url=jdbc:postgresql://localhost:5433/dslist
+        
+       Acessar a pagina do banco: http://localhost:5050/browser/
+       depois com mouse/direito ==> Databases ==> Create ==> Database ==> dslist  
+          (assim, o banco de dados já está criado na maquina)
+          
+     4. Na IDE STE-4 (Spring Tool Suite 4), ir em local ==> dslist(8080) e restartar o servidor 
+        Verificar mensagens na console: se Servidor restartado com sucesso.
+        
+     5. Conferir na pasta do projeto C:\DEVSUPERIOR\dslist
+        o arquivo create.sql de script gerado para criar a base de dados 
+        Copiar o texto deste arquivo que será utilizado abaixo.  
+
+  3. Criar base de dados de homologação 
+     ==================================
+     1. Criar base de dados a partir do arquivo de script create.sql gerado acima 
+       Acessar a pagina do banco dslist 
+       ==> Schemas  ==> Public ==> botão/direito em Tables ==> Query Tools 
+          colar o texto do script copiado acima  e executar 
+          Query returned successfully  
+          então, excluir texto do Query tools para não correr o risco de reexecutar. 
+       Ir em Tables e dar refresh para conferir as 3 tabelas criadas. 
+                 
+     2. Vamos mover o arquivo create.sql para nivel acima: C:\DEVSUPERIOR 
+        e renomear como create-dslist.sql para guarda-lo para usar depois na nuvem.     
+
+   
+  4. Rodar app no modo dev e validar
+  ==================================
+    1. Na IDE STS-4, restartar o projeto em modo dev 
+       para testar se vai funcionar agora conectando com o banco PostGress local 
+         
+    2. Testar os end-points no Postman 
+       Ex.: http://localhost:8080/lists/2/games 
+     
+    3. Deu erro de execução no Postman do end-point: 
+       http://localhost:8080/lists/2/games 
+          "timestamp": "2025-05-21T20:53:16.778+00:00",
+          "status": 500,
+          "error": "Internal Server Error",
+          "path": "/lists/2/games"
+        
+       Identificar este erro na console da IDE STS-4: 
+
+      2025-05-21T17:53:16.774-03:00 ERROR 37088 --- [nio-8080-exec-9] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: org.springframework.dao.InvalidDataAccessResourceUsageException: JDBC exception executing SQL [SELECT tb_game.id, tb_game.title, tb_game.game_year AS `year`, tb_game.img_url AS imgUrl,
+      tb_game.short_description AS shortDescription, tb_belonging.position
+      FROM tb_game
+      INNER JOIN tb_belonging ON tb_game.id = tb_belonging.game_id
+      WHERE tb_belonging.list_id = ?
+      ORDER BY tb_belonging.position
+      ] [ERROR: syntax error at or near "`"
+        Posição: 56] [n/a]; SQL [n/a]] with root cause
+
+      org.postgresql.util.PSQLException: ERROR: syntax error at or near "`"
+        Posição: 56
+       
+      Erro no repositorio: nao aceitou a crase do alias do campo Year 
+         /dslist/src/main/java/com/devsuperior/dslist/repositories/GameRepository.java 
+          SELECT tb_game.id, tb_game.title, tb_game.game_year AS `year`, 
+      Eliminar a crase alterar para: 
+          SELECT tb_game.id, tb_game.title, tb_game.game_year AS gameYear`,
+      
+      Alterar em /dslist/src/main/java/com/devsuperior/dslist/projections/GameMinProjection.java
+        para  getGameYear()
+        
+      Alterar em /dslist/src/main/java/com/devsuperior/dslist/dto/GameMinDTO.java
+        para  year = projection.getGameYear(); 
+      
+         
+    4. Com a correção acima, restartar o servidor e testar de novo no Postman  
+       http://localhost:8080/lists/2/games
+       agora deu certo.        
+
+    5. Antes de fazer o commit, voltar a configuração para test que é o padrao, alterado no item 2 para dev
+       em /dslist/src/main/resources/application.properties
+         De..: spring.profiles.active=${APP_PROFILE:dev}
+         Para: spring.profiles.active=${APP_PROFILE:test}               
+         
+       Só no momento de gerar a base de dados e homologar fica como dev, depois voltar para test
+         
+       Com o ultimo restart gerou de novo o arquivo de script create.sql em C:\DEVSUPERIOR\dslist, 
+       exclui-lo para não ficar no commit e
+         
+       Voltar a comentar as 4 linhas que geram esse arquivo para não ficar gerando o script toda vez que restarta o servidor 
+         /dslist/src/main/resources/application-dev.properties  
+         
+    7. Agora podemos fazer o commit de homologação 
+       
+      Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+      $ git add .
+
+      Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+      $ git commit -m "Homolog OK"
+      [main 184ba2a] Homolog OK
+       3 files changed, 3 insertions(+), 3 deletions(-)
+
+      Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+      $ git push
+      Enumerating objects: 27, done.
+      Counting objects: 100% (27/27), done.
+      Delta compression using up to 8 threads
+      Compressing objects: 100% (11/11), done.
+      Writing objects: 100% (14/14), 1.08 KiB | 221.00 KiB/s, done.
+      Total 14 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
+      remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+      To github.com:FranciscoCLira/dslist.git
+         440df2c..184ba2a  main -> main
+
+=========================================================================
+
+Passos deploy CI/CD
+===================
+
+  ATENÇÃO: OPCIONAL NO TREINAMENTO!!
+  Os serviços de hospedagem de back end com banco de dados não estão
+  mais oferecendo planos gratuitos. Assim, você pode apenas assistir essa
+  parte a aula para conhecimento, para entender como funciona o processo
+  de implantação. Neste momento, foque em deixar seu projeto caprichado
+  no Github, com um bom Readme, conforme mostramos na aula.
+
+Pré-requisitos
+  - Conta no Railway
+  - Conta no Github com mais de 90 dias
+  - Projeto Spring Boot salvo no seu Github - /dslist
+  - Script SQL para criação e seed da base de dados - create.sql
+  - Aplicativo de gestão de banco instalado (pgAdmin ou DBeaver)
+
+
+Passos Railway
+==============
+  1. Prover um servidor de banco de dados
+  2. Criar a base de dados e seed
+  3. Criar uma aplicação Railway vinculada a um repositório Github
+  4. Configurar variáveis de ambiente em settings 
+      APP_PROFILE
+      DB_URL (Formato: jdbc:postgresql://host:porta/nomedabase)
+      DB_USERNAME
+      DB_PASSWORD
+      CORS_ORIGINS
+  5. Configurar o domínio público para a aplicação
+  6. Testar app no Postman
+  7. Testar a esteira de CI/CD
+----------------------------------------
+
+Seguindo os passos acima: 
+
+  - Conta no Railway
+      Criar conta no Railway com o login do GitHub 
+      https://railway.com/new
+
+    Hosting or distributing any of the following items will ban your account permanently.
+    Mirrors / Userbots
+    Crypto Miners
+    DMCA Protected Content
+    Torrent Aggregators
+    VNC / Virtual Desktops
+    Anything Illegal
+
+    We encourage developers to learn and explore on Railway, 
+    making it accessible for everyone. 
+    However, we won't tolerate the abuse of resources that degrades the experience for others.
+
+  - Conta no Github com mais de 90 dias              ==> OK 
+  - Projeto Spring Boot salvo no seu Github          ==> OK 
+  - Script SQL para criação e seed da base de dados  ==> C:\DEVSUPERIOR\create.sql 
+  - Aplicativo de gestão de banco instalado (pgAdmin ou DBeaver)
+       ==> http://localhost:5050/browser/  ==> pgAdmin já está aberto para conexão ao banco na nuvem 
+
+
+Passos Railway
+==============
+
+  1. Prover um servidor de banco de dados
+    new Project ==> Provision PostgresSQL ou Deploy PostgreSQL => irá criar uma instancia do servidor 
+    
+    Conectar o PgAdmin ao Postgres  ==> Connect
+    
+    Na pagina do PgAdmin ==> http://localhost:5050/browser/
+    Registar um servidor ==> mouse/direito em Servers 
+    ==> Register - Server
+    
+    ==> General => Name: Postgres-railway-dslist  
+    
+    ==> Connection:
+        Host name/adrress...: switchyard.proxy.rlwy.net  (copiado de Postgress => Settings => Public Networking)
+        Port................: 19271
+        Maintenance database: railway 
+        Username............: postgres
+        Kerberos authentication?   ligado/desligado
+        Password............: UEFoytkycAVCvtKghmLldbFOcSSOaUxt
+        Save password?......:  sim 
+         
+     ==> Advanced
+        DB restriction: railway      
+         
+     Preencher as informações acima obtidas do
+     => Public Network 
+     
+     => Postgres ==> Variables ==> 
+        Copiar Database URL e colar abaixo: 
+        Database_UR Public: postgresql://postgres:UEFoytkycAVCvtKghmLldbFOcSSOaUxt@switchyard.proxy.rlwy.net:19271/railway
+        
+        DESTRINCHANDO a Database_UR Public:               
+        postgresql://
+        
+        postgres
+        :
+        UEFoytkycAVCvtKghmLldbFOcSSOaUxt
+        @
+        switchyard.proxy.rlwy.net
+        :
+        19271
+        /
+        railway
+ 
+      Ok, Conectado com sucesso: 
+          http://localhost:5050/browser/   
+             ==> Server => Postgres-railway-dslist        
+  
+  
+  2. Criar a base de dados e seed
+     Na pagina PgAdmin ==> http://localhost:5050/browser/
+  
+     Postgres-railway-dslist ==> Databases ==> Schemas ==> public 
+          mouse/direito em Tables ==>  Query Tool ==> 
+          Colar e rodar o script do banco de dados:  C:\DEVSUPERIOR\create.sql  
+            Query returned successfully 
+            Conferir ==> refresh em Tables   
+  
+  3. Criar uma aplicação Railway vinculada a um repositório Github
+  
+     New Project => Deploy from GitHub repo 
+       Configure GitHub App 
+       Pede a sua senha do Github                                              
+       Selecionar o repositorio dslist do GitHub 
+
+  4. Configurar variáveis de ambiente definidas nos arquivos de configuracao do app:
+   
+     /dslist/src/main/resources/application.properties  
+         spring.profiles.active=${APP_PROFILE:test}
+     /dslist/src/main/resources/application-prod.properties
+         spring.datasource.url=${DB_URL}
+         spring.datasource.username=${DB_USERNAME}
+         spring.datasource.password=${DB_PASSWORD}              
+ 
+     Adicionar as variaveies no Projeto dslist ==> settings ==> variables => new 
+       Variavel = Valor:      
+       APP_PROFILE="prod"
+       DB_PASSWORD="UEFoytkycAVCvtKghmLldbFOcSSOaUxt"
+       DB_USERNAME="postgres"             
+
+       DB_URL="jdbc:postgresql://switchyard.proxy.rlwy.net:19271/railway"
+              Valor: (Formato: jdbc:postgresql://host:porta/nomedabase)
+       
+       Obtida de Database_UR Public: 
+       postgresql://postgres:UEFoytkycAVCvtKghmLldbFOcSSOaUxt@switchyard.proxy.rlwy.net:19271/railway
+     
+     Adicionar a variavel: CORS_ORIGINS - Valor:  (endereços/links autorizados a acessar o backend)
+       Se não estiver configurada, por padrão vai ficar com: 
+       cors.origins=${CORS_ORIGINS:http://localhost:5173,http://localhost:3000} 
+          de /dslist/src/main/resources/application.properties
+     
+     Conferir o Deployment:  
+     https://www.youtube.com/watch?v=oYiUsoYl8kI
+     
+     DEPLOY: 
+     Foi utilizado a opção "deploy GitHub rep" => /dslist to railway
+     O Deploy deu erro varias vezes, 
+     até mudei o Builder para Railpack em vez Nixpacks que estava como default.  
+     
+  5. Configurar o domínio público para a aplicação
+
+     Na aba  ==> Settings ==> 
+     Networking
+      Public Networking
+      Access to this service publicly through HTTP or TCP
+         Generate Domain  ==> dslist-production-15a9.up.railway.app
+
+     Testar no navegador => dslist-production-15a9.up.railway.app
+      retornou no navegador a mensagem: "Whitelabel Error Page"
+     logo está funcionando. 
+     
+     Testar no PostMan: 
+     substituir o link
+       http://localhost:8080/lists/2/games
+       por 
+       dslist-production-15a9.up.railway.app/games
+       também testar com https:...
+       https://dslist-production-15a9.up.railway.app/games 
+     
+     CONFIGURAR A VARIAVEL DE AMBIENTE NO POSTMAN, 
+       ao invéz de colocar o endereço do link direto no PostMan 
+     
+     Postman ==> file ==> new => Environment
+      
+     ------------------------------------------------------------------------------------------  
+     New Environment  ==> DSList  ==> adicionar a variavel: 
+     ------------------------------------------------------------------------------------------  
+     Variabel   Type     Initial value           Current value 
+     host       default  http://localhost:8080   https://dslist-production-15a9.up.railway.app
+     ------------------------------------------------------------------------------------------  
+     
+     Agora para acessar: no canto direto do PostMan => combo "NO environment", selecionar DSList 
+     
+     Substituir os GET:  Ex.:   
+       De..:  https://dslist-production-15a9.up.railway.app/games
+       Para: {{host}}/games
+  
+  6. Testar app no Postman
+     Testados OK.   
+  
+  7. Testar a esteira de CI/CD
+    
+     Agora vamos ver a variavel CORS 
+          
+     CORS (Cross-Origin Resource Sharing) = compartilhamento de recursos de origem cruzada 
+                                            CORS (Compartilhamento de Recursos entre Origens)
+     é um mecanismo de segurança web que permite que recursos de um servidor web 
+     sejam acessados por scripts de um domínio diferente do servidor que hospeda o recurso. 
+     Em outras palavras, o CORS permite que um servidor web determine 
+     quais outros domínios têm permissão para acessar seus recursos via HTTP;
+     
+     Por padrão bloqueia uma aplicação que não esteva autorizada a acessar o backend. 
+     
+     precisa configurar o backend para permitir acesso. 
+     
+     O projeto está salvo no GitHub na branch main e,  
+     como o Railway está integrado ao GitHub 
+     quando fizer uma atualização na branch main, automaticamente vai disparar um novo Deploy 
+     que vai integrar essa mudança e implantar de novo na web - railway 
+     por isso que chama - integração entrega continua. 
+      
+     
+     Configuração de CORS: 
+     =====================
+     
+     No projeto na IDE STS-4, criar uma classe para configurar o CORS: 
+     para deixar o CORS liberado para uma URL especificada. 
+     
+     Criar classe com botão/direito em com.devsuperior.dslist
+     ==> new ==> class 
+     ==> novo pacote ==> com.devsuperior.dslist.config 
+         Class Name: WebConfig
+            package com.devsuperior.dslist.config;
+            public class WebConfig { }               
+            
+     Copiar do projeto referencia: 
+      https://github.com/devsuperior/dslist-backend?tab=readme-ov-file
+      WebConfig  ==> copiar e colar em WebConfig 
+                 --> Control+Shift+O para importar dependencias  
+        
+     Explicação: 
+     @Value("${cors.origins}")
+         
+     a variavel cors.origens está em /dslist/src/main/resources/application.properties
+     cors.origins=${CORS_ORIGINS:http://localhost:5173,http://localhost:3000}
+     
+     por padrão se a variavel não existir, vai liberar para o endereço acima, ou seja: 
+                    CORS_ORIGINS:http://localhost:5173,http://localhost:3000
+                    
+     mas se configurar no Railway a variavel CORS_ORIGINS com a URL
+     estará liberando o backend só para esea URL  
+     
+     Exemplo: adicionar a variavel no Railway 
+       ==> Variables ==> CORS_ORIGINS ==> https//devsuperior.com.br  
+                                      ==> irá liberar o backend só para essa URL
+                                           
+     Obs: Mudando a variavel de ambiente, vai disparar uma Build (Deploy) nova. 
+           
+     Conferindo o commit
+     ------------------- 
+         
+     Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+     $ git status
+     On branch main
+     Your branch is up to date with 'origin/main'.
+
+     Untracked files:
+       (use "git add <file>..." to include in what will be committed)
+             src/main/java/com/devsuperior/dslist/config/
+
+     nothing added to commit but untracked files present (use "git add" to track)
+
+     Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+     $ git add .
+
+     Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+     $ git commit -m "CORS config"
+     [main 3e0742e] CORS config
+      1 file changed, 25 insertions(+)
+      create mode 100644 src/main/java/com/devsuperior/dslist/config/WebConfig.java
+
+     Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+     $ git push
+     Enumerating objects: 17, done.
+     Counting objects: 100% (17/17), done.
+     Delta compression using up to 8 threads
+     Compressing objects: 100% (6/6), done.
+     Writing objects: 100% (10/10), 973 bytes | 162.00 KiB/s, done.
+     Total 10 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+     remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+     To github.com:FranciscoCLira/dslist.git
+        184ba2a..3e0742e  main -> main
+
+     Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+      
+                            
+  Revisão: 
+  ========  
+    O que você aprendeu:
+    • Dicas de currículo e portfólio
+    • Perfis de projeto
+    • Ambiente local com Docker Compose
+    • Processo de homologação local
+    • Processo de deploy com CI/CD
+    • Configuração de CORS  
+=====================================================
+
+
+========
+#Aula 4:
+========
+
+Vídeo: https://devsuperior.com.br/ijs-aula-479393
+PDF: https://devsuperior.s3.sa-east-1.amazonaws.com/ijs-aula4-398475.pdf
+
+
+Anteriormente
+--------------
+    Aula 1: 
+    • Conceitos
+    • Sistemas web e recursos
+    • Cliente/servidor, HTTP, JSON
+    • Padrão Rest para API web
+    • Estruturação de projeto Spring Rest • Entidades e ORM
+    • Database seeding
+    • Padrão camadas
+    • Controller, service, repository
+    • Padrão DTO
+
+    Aula 2: 
+    • Relacionamentos N-N
+    • Classe de associação, embedded id
+    • Consultas SQL no Spring Data JPA
+    • Projections
+    Aula 3: 
+    • Dicas de currículo e portfólio
+    • Perfis de projeto
+    • Ambiente local com Docker Compose
+    • Processo de homologação local • Processo de deploy com CI/CD
+    • Configuração de CORS          
+------------------------------------------------------------------
+
+
+
+Endpoint especial   vide .pdf acima 
+-----------------     
+
+ Terminar de fazer o ultimo Endpoint
+ Restartar o projeto  
+ Consultar no H2 
+
+  Qual a logica/algoritimo para reposicionar o jogo na lista belonging: 
+
+  Usar lista em memória:  Em com.devsuperior.dslist.services
+ 
+  Copiar o metodo da lista de /dslist/src/main/java/com/devsuperior/dslist/services/GameService.java
+      List<GameMinProjection> result = gameRepository.searchByList(listId);
+
+  Como mover do index 3 para 1, e deslocar o 1 ?  
+     
+1) Nova lista da LIST_ID = 2, apos executar: 
+   GameMinProjection obj = list.remove(sourceIndex);  ===> aponta para o CUPHEAD     
+    -------------------------------
+        0       6 MARIO      2     
+        1       7 HOLLOW     2
+        2       8 ORI        2
+        3      10 SONIC      2 
+    ------------------------------- 
+
+    -------------------------------     
+        3       9 CUPHEAD    2    => Removeu da lista para o objeto: obj 
+    -------------------------------         
+   
+2) Nova lista da LIST_ID =2, após executar: 
+   list.add(destinationIndex, obj); 
+    -------------------------------
+    POSITION  LIST_ID  GAME_ID    
+    ------------------------------
+        0        2      6 MARIO   
+        ----------    ------------   => MIN INDEX = 1
+        1        2      9 CUPHEAD    ==> inseriu aqui e empurrou os demais para baixo 
+        2        2      7 HOLLOW  
+        3        2      8 ORI     
+        ----------    ------------   => MAX INDEX = 3      
+        4        2     10 SONIC   
+    ------------------------------         
+
+    Agora, atualizar no DB a tabela tb_belonging o campo position    
+    Dado o Id da Lista e o Id do jogo, atualizar a position do jogo.  
+   
+    No GitHub de referencia, copiar o texto de GameListRepository
+    para a interface de mesmo nome: 
+
+      /dslist/src/main/java/com/devsuperior/dslist/repositories/GameListRepository.java
+       e Control+Shift+O para atualizar a dependencias/imports
+       
+    @Modifying  ==> quando é uma query que atualiza o DB: 
+    @Query(nativeQuery = true, 
+       value = "UPDATE tb_belonging 
+             SET position = :newPosition 
+           WHERE list_id  = :listId 
+             AND game_id  = :gameId")
+        void updateBelongingPosition(Long listId, Long gameId, Integer newPosition);
+                              dado: (id da lista e id do game, atualiza a posição)
+   
+    Como alterar apenas os indices no intervalo, determinar o minimo e o maximo index. 
+    na classe GameListService 
+    
+    for (int i = min; i <= max; i++) {
+          gameListRepository.updateBelongingPosition(listId, list.get(i).getId(), i); 
+                                                    (id da lista, id do jogo), posicao)
+                                               Ex.: (      2    ,   9 CUPHEAD,      1 )
+    
+     
+    Testar no PostMan, o EndPoint: 
+   
+    PUT:  Quando é uma alteração "idempotente", um unico resultado  
+    POST: Quando chama mais de uma vez produzindo resultados diferentes que é está situação. 
+         
+    POST: {{host}}/lists/2/replacement
+          Body  ==> raw  
+              {
+                  "sourceIndex": 3,
+                  "destinationIndex": 1
+              }          
+          
+    Criar um DTO para receber o JSON acima 
+      mouse/direto em com.devsuperior.dslist.dto ==> new ==> class 
+        => ReplacementDTO
+            package com.devsuperior.dslist.dto;
+            public class ReplacementDTO { }
+
+    Incluir o Controller em: 
+     /dslist/src/main/java/com/devsuperior/dslist/controllers/GameListController.java
+      
+    como uma API do Spring boot recebe um corpo de texto (ex. JSON) ? 
+      incluir o argumento ReplacementDTO boby  ==> o corpo da requisição 
+      
+       GetMapping(value = "/{listId}/replacement")
+       public void move(@PathVariable Long listId, @RequestBody ReplacementDTO body) {
+             gameListService.move(listId, body.getSourceIndex(), body.getDestinationIndex());
+       }
+    
+     Restartar o servidor e testar no PostMan. 
+     
+
+     SELECT TB_BELONGING.POSITION,
+            TB_BELONGING.LIST_ID,
+            TB_BELONGING.GAME_ID, 
+            TB_GAME.TITLE FROM TB_BELONGING 
+     INNER JOIN TB_GAME ON TB_GAME.ID  =  TB_BELONGING.GAME_ID 
+      WHERE LIST_ID = 2
+      ORDER BY POSITION 
+      
+     ou  
+     SELECT TB_BELONGING .*, TB_GAME.TITLE FROM TB_BELONGING 
+     INNER JOIN TB_GAME ON TB_GAME.ID  =  TB_BELONGING.GAME_ID 
+      WHERE LIST_ID = 2
+      ORDER BY POSITION  
+ 
+
+    ANTES: 
+    POSITION LIST_ID  GAME_ID  TITLE  
+          0      2      6      Super Mario World
+          1      2      7      Hollow Knight
+          2      2      8      Ori and the Blind Forest
+          3      2      9      Cuphead
+          4      2      10     Sonic CD
+    ----------------------------------------------------
+
+    DEPOIS: MOVER INDEX 3 PARA O 1, NO POST DO JSON:  
+     
+    POSITION LIST_ID  GAME_ID  TITLE  
+          0      2      6      Super Mario World
+          1      2      9      Cuphead
+          2      2      7      Hollow Knight
+          3      2      8      Ori and the Blind Forest
+          4      2      10     Sonic CD
+    ----------------------------------------------------
+     
+    COMMIT 
+     
+    Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+    $ git add .
+
+    Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+    $ git commit -m "Replacement games on list"
+    [main 1e89b65] Replacement games on list
+     4 files changed, 61 insertions(+), 1 deletion(-)
+     create mode 100644 src/main/java/com/devsuperior/dslist/dto/ReplacementDTO.java
+
+    Samsung@LAPTOP-9P7FQEU6 MINGW64 /c/DEVSUPERIOR/dslist (main)
+    $ git push
+    Enumerating objects: 30, done.
+    Counting objects: 100% (30/30), done.
+    Delta compression using up to 8 threads
+    Compressing objects: 100% (13/13), done.
+    Writing objects: 100% (16/16), 2.07 KiB | 352.00 KiB/s, done.
+    Total 16 (delta 6), reused 0 (delta 0), pack-reused 0 (from 0)
+    remote: Resolving deltas: 100% (6/6), completed with 6 local objects.
+    To github.com:FranciscoCLira/dslist.git
+       3e0742e..1e89b65  main -> main
+---------------------------------------------------------------------------------
+    
+         
+Revisão
+-------
+    O que você aprendeu:
+    • Design e implementação de endpoint especial
+    • Operação de atualização no Spring
+    • Operações com List
+    • Verbo HTTP e idempotência        
+              
+            
+            
+      
+            
+        
