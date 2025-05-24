@@ -1,5 +1,5 @@
 # DSList Games Playlist 
-[![NPM]() 
+[![NPM](https://github.com/FranciscoCLira/dslist/blob/main/LICENSE) 
 
 # Sobre o projeto
 
@@ -9,9 +9,9 @@ https://dslist-production-15a9.up.railway.app/games ou
     /lists/{id_game}/games
     /lists/(id_game}/replacement  onde replacement: Body {indice_origem, indice_destino}
 
-DsList � uma aplica��o back end web constru�da durante a **Semana do Intensivão Java Spring** (#dslist), evento organizado pela [DevSuperior](https://devsuperior.com "Site da DevSuperior").
+DsList é uma aplicação back end web construida durante a **Semana do Intensivão Java Spring** (#dslist), evento organizado pela [DevSuperior](https://devsuperior.com "Site da DevSuperior").
 
-A aplica��o consiste na geração da base da dados de jogos e suas playlists para se efetuar requisições HTTP/REST via JSON por lista de jogos, jogo, de jogos, playlistas, jogo por playlista, bem como permitir a alteração da posição de um jogo na playlist.
+A aplicaçãoo consiste da geração da Base de Dados de jogos e suas playlists, permitindo requisições HTTP/REST via JSON por lista dos jogos, jogo, , playlists, jogo por playlista, bem como requisições para a alteração da posição de um jogo dada a playlist, posição dos jogos na lista, origem e destino
 
 ## Layout mobile (N/A)
 ## Layout web (N/A)
@@ -32,7 +32,7 @@ A aplica��o consiste na geração da base da dados de jogos e suas playlists
 
 ## Front end (N/A)
 
-## Implanta��o em produ��o
+## Implantação em produção
 - Back end: Railway Server
 - Front end web: (N/A) - Requisições HTTP/REST via JSON
 - Banco de dados: Postgresql
@@ -40,10 +40,10 @@ A aplica��o consiste na geração da base da dados de jogos e suas playlists
 # Como executar o projeto
 
 ## Back end
-Pr�-requisitos: Java 21, ou alterar para outra versão no arquivo pom.xml e system.properties
+Pré-requisitos: Java 21, ou alterar para outra versão no arquivo pom.xml e system.properties
 
 ```bash
-# clonar reposit�rio
+# clonar repositório
 git clone https://github.com/FranciscoCLira/dslist
 
 # entrar na pasta do projeto back end
