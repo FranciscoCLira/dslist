@@ -4,12 +4,12 @@
 # Sobre o projeto
 
 https://dslist-production-15a9.up.railway.app/games ou 
-    /games/{id_game} ou 
-    /lists ou 
-    /lists/{id_game}/games
-    /lists/(id_game}/replacement  onde replacement: Body {indice_origem, indice_destino}
+  /games/{id_game} ou 
+  /lists ou 
+  /lists/{id_game}/games
+  /lists/(id_game}/replacement  onde replacement: Body {indice_origem, indice_destino}
 
-DsList é uma aplicação back end web construida durante a **Semana do Intensivão Java Spring** (#dslist), evento organizado pela [DevSuperior](https://devsuperior.com "Site da DevSuperior").
+DsList é uma aplicação web back end construida durante a **Semana do Intensivão Java Spring** (#dslist), evento organizado pela [DevSuperior](https://devsuperior.com "Site da DevSuperior"), em maio/2025.
 
 A aplicaçãoo consiste da geração da Base de Dados de jogos e suas playlists, permitindo requisições HTTP/REST via JSON por lista dos jogos, jogo, , playlists, jogo por playlista, bem como requisições para a alteração da posição de um jogo dada a playlist, posição dos jogos na lista, origem e destino
 
